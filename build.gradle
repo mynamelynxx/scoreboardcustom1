@@ -22,6 +22,12 @@ loom {
 			sourceSet sourceSets.client
 		}
 	}
+
+	runs {
+		client {
+			client()
+		}
+	}
 }
 
 dependencies {
