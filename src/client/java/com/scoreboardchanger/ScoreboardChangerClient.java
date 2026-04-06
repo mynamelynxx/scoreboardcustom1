@@ -13,13 +13,13 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardDisplaySlot;
-import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.scoreboard.ScoreboardEntry;
+import net.minecraft.scoreboard.ScoreboardObjective;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
-import java.util.Collection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ScoreboardChangerClient implements ClientModInitializer {
@@ -61,13 +61,13 @@ public class ScoreboardChangerClient implements ClientModInitializer {
     }
 
     private void renderFakeScoreboard(DrawContext context, MinecraftClient client,
-                                       ModConfig cfg, Scoreboard scoreboard, ScoreboardObjective objective) {
+                                      ModConfig cfg, Scoreboard scoreboard, ScoreboardObjective objective) {
         TextRenderer tr = client.textRenderer;
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
-        // Get sorted entries using the correct 1.21.4 API
-        Collection<ScoreboardEntry> entries = scoreboard.getAllPlayerScores(objective);
+        // Correct API for 1.21.4
+        Collection<ScoreboardEntry> entries = scoreboard.getScoreboardEntries(objective);
         if (entries == null || entries.isEmpty()) return;
 
         List<ScoreboardEntry> sorted = new ArrayList<>(entries);
@@ -76,7 +76,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
 
         int lineHeight = tr.fontHeight + 1;
         int totalHeight = sorted.size() * lineHeight + lineHeight + 2;
-
         int startY = (screenHeight - totalHeight) / 2 + 10;
 
         // Calculate max width for X position
@@ -87,15 +86,15 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         maxWidth += 8;
         int startX = screenWidth - maxWidth - 3;
 
-        int y = startY + lineHeight;
+        int y = startY + lineHeight; // skip header line
         for (ScoreboardEntry entry : sorted) {
             String originalName = entry.owner();
             Text replacement = getReplacement(originalName, cfg);
 
             if (replacement != null) {
-                // Cover original with background
+                // Cover original text with background rectangle
                 context.fill(startX - 2, y - 1, screenWidth - 2, y + lineHeight - 1, 0x88000000);
-                // Draw replacement
+                // Draw replacement text
                 context.drawTextWithShadow(tr, replacement, startX, y, 0xFFFFFF);
             }
             y += lineHeight;
