@@ -2,10 +2,8 @@
   "required": true,
   "package": "com.scoreboardchanger.mixin",
   "compatibilityLevel": "JAVA_21",
-  "client": [
-    "PlayerListHudMixin",
-    "ScoreboardObjectiveRendererMixin"
-  ],
+  "mixins": [],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }
