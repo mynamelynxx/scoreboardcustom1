@@ -14,9 +14,11 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardDisplaySlot;
 import net.minecraft.scoreboard.ScoreboardObjective;
+import net.minecraft.scoreboard.ScoreboardEntry;
 import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,70 +56,46 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             ScoreboardObjective objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR);
             if (objective == null) return;
 
-            renderFakeScoreboard(drawContext, client, cfg, objective);
+            renderFakeScoreboard(drawContext, client, cfg, scoreboard, objective);
         });
     }
 
-    private void renderFakeScoreboard(DrawContext context, MinecraftClient client, ModConfig cfg, ScoreboardObjective objective) {
+    private void renderFakeScoreboard(DrawContext context, MinecraftClient client,
+                                       ModConfig cfg, Scoreboard scoreboard, ScoreboardObjective objective) {
         TextRenderer tr = client.textRenderer;
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
-        // Collect lines from real scoreboard, then replace values
-        List<Text> lines = new ArrayList<>();
+        // Get sorted entries using the correct 1.21.4 API
+        Collection<ScoreboardEntry> entries = scoreboard.getAllPlayerScores(objective);
+        if (entries == null || entries.isEmpty()) return;
 
-        // We'll overlay only the lines that contain our keywords
-        // by drawing colored rectangles over the real scoreboard text positions
-        // Standard scoreboard sidebar is on the right side
-        // We need to find where it is and overdraw
-
-        // Get all score entries to know height
-        var scores = scoreboard.getScoreHolders().stream()
-                .filter(holder -> scoreboard.getScore(holder, objective) != null)
-                .sorted((a, b) -> {
-                    var sa = scoreboard.getScore(a, objective);
-                    var sb = scoreboard.getScore(b, objective);
-                    if (sa == null || sb == null) return 0;
-                    return Integer.compare(sb.getScore(), sa.getScore());
-                })
-                .limit(15)
-                .toList();
-
-        int lineCount = scores.size();
-        if (lineCount == 0) return;
+        List<ScoreboardEntry> sorted = new ArrayList<>(entries);
+        sorted.sort((a, b) -> Integer.compare(b.value(), a.value()));
+        if (sorted.size() > 15) sorted = sorted.subList(0, 15);
 
         int lineHeight = tr.fontHeight + 1;
-        int totalHeight = lineCount * lineHeight + lineHeight + 2; // +header
+        int totalHeight = sorted.size() * lineHeight + lineHeight + 2;
 
-        // Standard scoreboard position: right side, vertically centered
         int startY = (screenHeight - totalHeight) / 2 + 10;
 
-        // Calculate max width to find X position
+        // Calculate max width for X position
         int maxWidth = tr.getWidth(objective.getDisplayName());
-        for (var holder : scores) {
-            String name = holder.getNameForScoreboard();
-            maxWidth = Math.max(maxWidth, tr.getWidth(name));
+        for (ScoreboardEntry entry : sorted) {
+            maxWidth = Math.max(maxWidth, tr.getWidth(entry.owner()));
         }
         maxWidth += 8;
         int startX = screenWidth - maxWidth - 3;
 
-        // Draw background + replaced text for each line
-        // Header (objective name) - we don't replace it (it's the mode)
-        // Lines - replace matching ones
-
-        int y = startY + lineHeight; // skip header
-        for (var holder : scores) {
-            String originalName = holder.getNameForScoreboard();
+        int y = startY + lineHeight;
+        for (ScoreboardEntry entry : sorted) {
+            String originalName = entry.owner();
             Text replacement = getReplacement(originalName, cfg);
 
             if (replacement != null) {
-                int lineWidth = tr.getWidth(replacement) + 4;
-                int lineX = screenWidth - lineWidth - 3;
-
-                // Cover the original text with a background rectangle
+                // Cover original with background
                 context.fill(startX - 2, y - 1, screenWidth - 2, y + lineHeight - 1, 0x88000000);
-
-                // Draw replacement text
+                // Draw replacement
                 context.drawTextWithShadow(tr, replacement, startX, y, 0xFFFFFF);
             }
             y += lineHeight;
@@ -127,15 +105,14 @@ public class ScoreboardChangerClient implements ClientModInitializer {
     private Text getReplacement(String raw, ModConfig cfg) {
         String s = raw.replaceAll("§.", "").trim();
 
-        if (s.contains("Ранг:"))      return Text.literal("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank);
-        if (s.contains("Монет:"))     return Text.literal("§7Монет: §6" + cfg.fakeCoins);
-        if (s.contains("Токенов:"))   return Text.literal("§7Токенов: §b" + cfg.fakeTokens);
-        if (s.contains("Черепков:"))  return Text.literal("§7Черепков: §d" + cfg.fakeSkulls);
-        if (s.contains("Убийств:"))   return Text.literal("§7Убийств: §a" + cfg.fakeKills);
-        if (s.contains("Смертей:"))   return Text.literal("§7Смертей: §c" + cfg.fakeDeaths);
-        if (s.contains("Наиграно:"))  return Text.literal("§7Наиграно: §e" + cfg.fakePlaytime);
+        if (s.contains("Ранг:"))     return Text.literal("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank);
+        if (s.contains("Монет:"))    return Text.literal("§7Монет: §6" + cfg.fakeCoins);
+        if (s.contains("Токенов:"))  return Text.literal("§7Токенов: §b" + cfg.fakeTokens);
+        if (s.contains("Черепков:")) return Text.literal("§7Черепков: §d" + cfg.fakeSkulls);
+        if (s.contains("Убийств:"))  return Text.literal("§7Убийств: §a" + cfg.fakeKills);
+        if (s.contains("Смертей:"))  return Text.literal("§7Смертей: §c" + cfg.fakeDeaths);
+        if (s.contains("Наиграно:")) return Text.literal("§7Наиграно: §e" + cfg.fakePlaytime);
 
-        // Nickname — top line, single word no colon
         if (!s.isEmpty() && !s.contains(":") && !s.contains(" ")) {
             if (s.equals(cfg.fakeNickname) || raw.contains(cfg.fakeNickname)) {
                 return Text.literal("§f" + cfg.fakeNickname);
