@@ -56,17 +56,16 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             ScoreboardObjective objective = scoreboard.getObjectiveForSlot(ScoreboardDisplaySlot.SIDEBAR);
             if (objective == null) return;
 
-            renderFakeScoreboard(drawContext, client, cfg, scoreboard, objective);
+            renderOverlay(drawContext, client, cfg, scoreboard, objective);
         });
     }
 
-    private void renderFakeScoreboard(DrawContext context, MinecraftClient client,
-                                      ModConfig cfg, Scoreboard scoreboard, ScoreboardObjective objective) {
+    private void renderOverlay(DrawContext context, MinecraftClient client,
+                                ModConfig cfg, Scoreboard scoreboard, ScoreboardObjective objective) {
         TextRenderer tr = client.textRenderer;
         int screenWidth = client.getWindow().getScaledWidth();
         int screenHeight = client.getWindow().getScaledHeight();
 
-        // Correct API for 1.21.4
         Collection<ScoreboardEntry> entries = scoreboard.getScoreboardEntries(objective);
         if (entries == null || entries.isEmpty()) return;
 
@@ -74,30 +73,50 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         sorted.sort((a, b) -> Integer.compare(b.value(), a.value()));
         if (sorted.size() > 15) sorted = sorted.subList(0, 15);
 
-        int lineHeight = tr.fontHeight + 1;
-        int totalHeight = sorted.size() * lineHeight + lineHeight + 2;
-        int startY = (screenHeight - totalHeight) / 2 + 10;
+        // === Точная копия логики позиционирования из InGameHud ===
+        int entryCount = sorted.size();
 
-        // Calculate max width for X position
+        // Считаем ширину скорборда — максимум между шириной заголовка и строк
         int maxWidth = tr.getWidth(objective.getDisplayName());
         for (ScoreboardEntry entry : sorted) {
-            maxWidth = Math.max(maxWidth, tr.getWidth(entry.owner()));
+            String name = entry.owner();
+            // Убираем форматирование для расчёта ширины
+            maxWidth = Math.max(maxWidth, tr.getWidth(name) + 8);
         }
-        maxWidth += 8;
-        int startX = screenWidth - maxWidth - 3;
 
-        int y = startY + lineHeight; // skip header line
-        for (ScoreboardEntry entry : sorted) {
+        int boardWidth = maxWidth + 3;
+        int lineHeight = tr.fontHeight + 1; // = 10
+
+        // Высота всего блока
+        int boardHeight = entryCount * lineHeight;
+
+        // Позиция Y — по центру экрана
+        int startY = screenHeight / 2 + boardHeight / 3;
+
+        // Позиция X — правый край
+        int rightX = screenWidth - 3;
+        int leftX = rightX - boardWidth;
+
+        // Рисуем замену для каждой строки снизу вверх (как MC)
+        for (int i = 0; i < sorted.size(); i++) {
+            ScoreboardEntry entry = sorted.get(i);
             String originalName = entry.owner();
             Text replacement = getReplacement(originalName, cfg);
 
             if (replacement != null) {
-                // Cover original text with background rectangle
-                context.fill(startX - 2, y - 1, screenWidth - 2, y + lineHeight - 1, 0x88000000);
-                // Draw replacement text
-                context.drawTextWithShadow(tr, replacement, startX, y, 0xFFFFFF);
+                // Y позиция этой строки (MC рисует снизу вверх)
+                int lineY = startY - (i + 1) * lineHeight;
+
+                // Закрываем оригинальный текст прямоугольником цвета фона скорборда
+                // Фон строк скорборда: 0x80000000 (полупрозрачный чёрный)
+                // Чётные строки чуть светлее: 0x40000000
+                int bgColor = (i % 2 == 0) ? 0x40000000 : 0x50000000;
+                context.fill(leftX, lineY - 1, rightX, lineY + lineHeight - 1, 0xFF000000);
+                context.fill(leftX + 1, lineY - 1, rightX - 1, lineY + lineHeight - 1, bgColor);
+
+                // Рисуем замену
+                context.drawTextWithShadow(tr, replacement, leftX + 3, lineY, 0xFFFFFF);
             }
-            y += lineHeight;
         }
     }
 
@@ -112,8 +131,9 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         if (s.contains("Смертей:"))  return Text.literal("§7Смертей: §c" + cfg.fakeDeaths);
         if (s.contains("Наиграно:")) return Text.literal("§7Наиграно: §e" + cfg.fakePlaytime);
 
+        // Никнейм — строка без пробелов и двоеточий
         if (!s.isEmpty() && !s.contains(":") && !s.contains(" ")) {
-            if (s.equals(cfg.fakeNickname) || raw.contains(cfg.fakeNickname)) {
+            if (!cfg.fakeNickname.isEmpty()) {
                 return Text.literal("§f" + cfg.fakeNickname);
             }
         }
