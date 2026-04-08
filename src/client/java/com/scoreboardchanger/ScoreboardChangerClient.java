@@ -71,7 +71,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
 
         for (int i = 0; i < lines.size(); i++) {
             int lineY = startY + lineHeight + i * lineHeight;
-            context.drawTextWithShadow(textRenderer, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF);
+            context.drawText(textRenderer, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF, false);
         }
     }
 
