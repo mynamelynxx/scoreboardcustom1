@@ -170,22 +170,36 @@ public class ScoreboardChangerClient implements ClientModInitializer {
     }
 
     /**
-     * Преобразует строку с hex-цветами (&#RRGGBB или #RRGGBB) и кодами форматирования (&l, §l, &o и т.д.)
-     * в объект Text с правильным форматированием.
+     * Преобразует строку с hex-цветами (&#RRGGBB, #RRGGBB, §x§R§R§G§G§B§B)
+     * и кодами форматирования (&l, §l, &o, §o и т.д.) в объект Text с правильным форматированием.
      */
     private class_2561 parseColoredText(String raw) {
         if (raw == null || raw.isEmpty()) return class_2561.method_43470("");
 
-        // Ищем: &#RRGGBB, #RRGGBB, или &x, или §x (где x - буква/цифра кода форматирования)
+        // Сначала преобразуем §x§F§F§0§0§2§E в &#FF002E
+        String converted = raw;
+        java.util.regex.Pattern rgbPattern = java.util.regex.Pattern.compile("§x(§[0-9A-Fa-f]){6}");
+        java.util.regex.Matcher rgbMatcher = rgbPattern.matcher(converted);
+        while (rgbMatcher.find()) {
+            String fullMatch = rgbMatcher.group(); // например "§x§F§F§0§0§2§E"
+            StringBuilder hex = new StringBuilder("&#");
+            for (int i = 2; i < fullMatch.length(); i += 2) { // пропускаем "§x", берём пары "§F", "§F"...
+                char digit = fullMatch.charAt(i + 1); // символ после §
+                hex.append(digit);
+            }
+            converted = converted.replace(fullMatch, hex.toString());
+        }
+
+        // Теперь обрабатываем обычные &#RRGGBB, #RRGGBB и коды форматирования
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(&?#[0-9a-fA-F]{6})|([&§][0-9a-z])");
-        java.util.regex.Matcher matcher = pattern.matcher(raw);
+        java.util.regex.Matcher matcher = pattern.matcher(converted);
         class_5250 result = class_2561.method_43470("");
         int lastEnd = 0;
         class_2583 currentStyle = class_2583.field_24360;
 
         while (matcher.find()) {
             if (matcher.start() > lastEnd) {
-                String textPart = raw.substring(lastEnd, matcher.start());
+                String textPart = converted.substring(lastEnd, matcher.start());
                 result.method_10852(class_2561.method_43470(textPart).method_10862(currentStyle));
             }
             String code = matcher.group();
@@ -205,8 +219,8 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             }
             lastEnd = matcher.end();
         }
-        if (lastEnd < raw.length()) {
-            result.method_10852(class_2561.method_43470(raw.substring(lastEnd)).method_10862(currentStyle));
+        if (lastEnd < converted.length()) {
+            result.method_10852(class_2561.method_43470(converted.substring(lastEnd)).method_10862(currentStyle));
         }
         return result;
     }
