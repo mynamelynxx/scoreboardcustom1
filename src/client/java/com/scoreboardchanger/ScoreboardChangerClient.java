@@ -1,190 +1,243 @@
-package com.scoreboardchanger.gui;
+package com.scoreboardchanger;
 
 import com.scoreboardchanger.config.ModConfig;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.SliderWidget;
-import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.text.Text;
+import com.scoreboardchanger.gui.ScoreboardChangerScreen;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.minecraft.class_2561;
+import net.minecraft.class_2583;
+import net.minecraft.class_266;
+import net.minecraft.class_269;
+import net.minecraft.class_304;
+import net.minecraft.class_310;
+import net.minecraft.class_327;
+import net.minecraft.class_332;
+import net.minecraft.class_3675;
+import net.minecraft.class_5250;
+import net.minecraft.class_5251;
+import net.minecraft.class_8646;
+import net.minecraft.class_9011;
+import org.lwjgl.glfw.GLFW;
 
-public class ScoreboardChangerScreen extends Screen {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
-    private static final String[] RANK_COLORS = {"§f","§a","§b","§e","§6","§x§F§F§0§0§2§E","§4","§d","§5","§9"};
-    private static final String[] RANK_COLOR_NAMES = {"Белый","Зелёный","Голубой","Жёлтый","Золотой","Красный","Тёмно-красный","Розовый","Фиолетовый","Синий"};
+public class ScoreboardChangerClient implements ClientModInitializer {
 
-    private TextFieldWidget nicknameField, rankField, coinsField, tokensField,
-            skullsField, killsField, deathsField, playtimeField;
-
-    private int selectedColorIndex = 0;
-    private ButtonWidget colorBtn;
-    private ButtonWidget enableBtn, debugBtn;
-    private OffsetSlider sliderX, sliderY;
-
-    public ScoreboardChangerScreen() {
-        super(Text.literal("Scoreboard Changer"));
-    }
+    public static class_304 openGuiKey;
 
     @Override
-    protected void init() {
-        ModConfig cfg = ModConfig.getInstance();
+    public void onInitializeClient() {
+        ModConfig.load();
 
-        // Определяем индекс по сохранённой строке цвета
-        String savedColor = cfg.fakeRankColor; // используем существующее поле
-        for (int i = 0; i < RANK_COLORS.length; i++) {
-            if (RANK_COLORS[i].equals(savedColor)) {
-                selectedColorIndex = i;
-                break;
+        openGuiKey = KeyBindingHelper.registerKeyBinding(new class_304(
+                "key.scoreboardchanger.open_gui",
+                class_3675.class_307.field_1668,
+                GLFW.GLFW_KEY_UNKNOWN,
+                "category.scoreboardchanger"
+        ));
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (openGuiKey.method_1436()) {
+                if (client.field_1755 == null) {
+                    client.method_1507(new ScoreboardChangerScreen());
+                }
             }
-        }
+        });
 
-        int col1X = this.width / 2 - 220;
-        int col2X = this.width / 2 + 10;
-        int y0 = 25, gap = 26, fW = 150, fH = 18;
+        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
+            ModConfig cfg = ModConfig.getInstance();
+            if (!cfg.enabled) return;
 
-        nicknameField = addField(col1X + 90, y0, fW, fH, cfg.fakeNickname);
-        rankField = addField(col1X + 90, y0 + gap, fW, fH, cfg.fakeRank);
+            class_310 client = class_310.method_1551();
+            if (client == null) return;
 
-        colorBtn = addDrawableChild(ButtonWidget.builder(
-                Text.literal("Цвет: " + RANK_COLOR_NAMES[selectedColorIndex]),
-                btn -> {
-                    selectedColorIndex = (selectedColorIndex + 1) % RANK_COLORS.length;
-                    btn.setMessage(Text.literal("Цвет: " + RANK_COLOR_NAMES[selectedColorIndex]));
-                }).dimensions(col1X + 90, y0 + gap * 2, fW, fH).build());
-
-        coinsField = addField(col1X + 90, y0 + gap * 3, fW, fH, cfg.fakeCoins);
-        tokensField = addField(col1X + 90, y0 + gap * 4, fW, fH, cfg.fakeTokens);
-        skullsField = addField(col1X + 90, y0 + gap * 5, fW, fH, cfg.fakeSkulls);
-
-        killsField = addField(col2X + 90, y0, fW, fH, cfg.fakeKills);
-        deathsField = addField(col2X + 90, y0 + gap, fW, fH, cfg.fakeDeaths);
-        playtimeField = addField(col2X + 90, y0 + gap * 2, fW, fH, cfg.fakePlaytime);
-
-        sliderX = new OffsetSlider(col1X, y0 + gap * 7, 200, 18, "Смещение X", cfg.offsetX, -300, 300);
-        sliderY = new OffsetSlider(col1X, y0 + gap * 8, 200, 18, "Смещение Y", cfg.offsetY, -300, 300);
-        addDrawableChild(sliderX);
-        addDrawableChild(sliderY);
-
-        int btnY = this.height - 55;
-        enableBtn = addDrawableChild(ButtonWidget.builder(
-                Text.literal(cfg.enabled ? "§aВключено" : "§cВыключено"),
-                btn -> {
-                    cfg.enabled = !cfg.enabled;
-                    btn.setMessage(Text.literal(cfg.enabled ? "§aВключено" : "§cВыключено"));
-                }).dimensions(this.width / 2 - 155, btnY, 100, 20).build());
-
-        debugBtn = addDrawableChild(ButtonWidget.builder(
-                Text.literal(cfg.debugMode ? "§aДебаг: ВКЛ" : "§7Дебаг: ВЫКЛ"),
-                btn -> {
-                    cfg.debugMode = !cfg.debugMode;
-                    btn.setMessage(Text.literal(cfg.debugMode ? "§aДебаг: ВКЛ" : "§7Дебаг: ВЫКЛ"));
-                }).dimensions(this.width / 2 - 50, btnY, 100, 20).build());
-
-        addDrawableChild(ButtonWidget.builder(Text.literal("Сохранить"), btn -> save())
-                .dimensions(this.width / 2 + 55, btnY, 100, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("Закрыть"), btn -> close())
-                .dimensions(this.width / 2 + 55, btnY + 25, 100, 20).build());
-    }
-
-    private TextFieldWidget addField(int x, int y, int w, int h, String value) {
-        TextFieldWidget f = new TextFieldWidget(this.textRenderer, x, y, w, h, Text.empty());
-        f.setText(value);
-        f.setMaxLength(64);
-        addDrawableChild(f);
-        return f;
-    }
-
-    private void save() {
-        ModConfig cfg = ModConfig.getInstance();
-        cfg.fakeNickname = nicknameField.getText();
-        cfg.fakeRank = rankField.getText();
-        cfg.fakeRankColor = RANK_COLORS[selectedColorIndex]; // сохраняем строку цвета
-        cfg.fakeCoins = coinsField.getText();
-        cfg.fakeTokens = tokensField.getText();
-        cfg.fakeSkulls = skullsField.getText();
-        cfg.fakeKills = killsField.getText();
-        cfg.fakeDeaths = deathsField.getText();
-        cfg.fakePlaytime = playtimeField.getText();
-        cfg.offsetX = sliderX.getIntValue();
-        cfg.offsetY = sliderY.getIntValue();
-        ModConfig.save();
-    }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
-        super.render(context, mouseX, mouseY, delta);
-        context.drawCenteredTextWithShadow(textRenderer, this.title, this.width / 2, 8, 0xFFFFFF);
-
-        int col1X = this.width / 2 - 220;
-        int col2X = this.width / 2 + 10;
-        int y0 = 25, gap = 26;
-
-        context.drawTextWithShadow(textRenderer, "Никнейм:", col1X, y0 + 5, 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Ранг:", col1X, y0 + gap + 5, 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Цвет ранга:", col1X, y0 + gap * 2 + 5, 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Монеты:", col1X, y0 + gap * 3 + 5, 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Токены:", col1X, y0 + gap * 4 + 5, 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Черепки:", col1X, y0 + gap * 5 + 5, 0xAAAAAA);
-
-        context.drawTextWithShadow(textRenderer, "Убийства:", col2X, y0 + 5, 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Смерти:", col2X, y0 + gap + 5, 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Наиграно:", col2X, y0 + gap * 2 + 5, 0xAAAAAA);
-
-        // === Превью ранга с поддержкой §x ===
-        String colorCode = RANK_COLORS[selectedColorIndex];
-        String rankText = rankField.getText();
-        Text coloredRank;
-
-        if (colorCode.startsWith("§x")) {
-            // Преобразуем §x§F§F§0§0§2§E → "FF002E"
-            String hex = colorCode.replace("§", "").substring(1);
-            try {
-                int rgb = Integer.parseInt(hex, 16);
-                coloredRank = Text.literal(rankText).styled(style -> style.withColor(rgb));
-            } catch (NumberFormatException e) {
-                coloredRank = Text.literal(rankText);
+            if (cfg.debugMode) {
+                renderDebugOverlay(drawContext, client, cfg);
+                return;
             }
-        } else {
-            coloredRank = Text.literal(colorCode + rankText);
-        }
 
-        context.drawTextWithShadow(textRenderer, "Превью:", col2X, y0 + gap * 4, 0x888888);
-        context.drawTextWithShadow(textRenderer, coloredRank, col2X, y0 + gap * 5, 0xFFFFFF);
+            if (client.field_1687 == null || client.field_1724 == null) return;
 
-        context.drawTextWithShadow(textRenderer,
-                "§7Дебаг: показывает overlay без сервера. Ползунки — подстрой под скорборд.",
-                col1X, this.height - 12, 0x888888);
+            class_269 scoreboard = client.field_1687.method_8428();
+            class_266 objective = scoreboard.method_1189(class_8646.field_45157);
+            if (objective == null) return;
+
+            renderOverlay(drawContext, client, cfg, scoreboard, objective);
+        });
     }
 
-    @Override
-    public boolean shouldPause() { return false; }
+    private void renderDebugOverlay(class_332 context, class_310 client, ModConfig cfg) {
+        class_327 tr = client.field_1772;
+        int screenWidth = client.method_22683().method_4486();
+        int lineHeight = tr.field_2000 + 1;
 
-    @Override
-    public void close() { this.client.setScreen(null); }
-
-    public static class OffsetSlider extends SliderWidget {
-        private final String label;
-        private final int min, max;
-
-        public OffsetSlider(int x, int y, int width, int height, String label, int current, int min, int max) {
-            super(x, y, width, height, Text.empty(), (double) (current - min) / (max - min));
-            this.label = label;
-            this.min = min;
-            this.max = max;
-            updateMessage();
+        List<class_2561> lines = buildFakeLines(cfg);
+        int maxWidth = 100;
+        for (class_2561 line : lines) {
+            maxWidth = Math.max(maxWidth, tr.method_27525(line));
         }
+        maxWidth += 6;
 
-        public int getIntValue() {
-            return min + (int) Math.round(value * (max - min));
+        int panelRight = screenWidth - 2 + cfg.offsetX;
+        int panelLeft = panelRight - maxWidth;
+        int startY = 10 + cfg.offsetY;
+
+        for (int i = 0; i < lines.size(); i++) {
+            int lineY = startY + lineHeight + i * lineHeight;
+            context.method_51439(tr, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF, false);
         }
+    }
 
-        @Override
-        protected void updateMessage() {
-            setMessage(Text.literal(label + ": " + getIntValue()));
+    private void renderOverlay(class_332 context, class_310 client,
+                                ModConfig cfg, class_269 scoreboard, class_266 objective) {
+        class_327 tr = client.field_1772;
+        int screenWidth = client.method_22683().method_4486();
+        int screenHeight = client.method_22683().method_4502();
+
+        Collection<class_9011> entries = scoreboard.method_1184(objective);
+        if (entries == null || entries.isEmpty()) return;
+
+        List<class_9011> sorted = new ArrayList<>(entries);
+        sorted.sort((a, b) -> Integer.compare(b.comp_2128(), a.comp_2128()));
+        if (sorted.size() > 15) sorted = sorted.subList(0, 15);
+
+        int lineHeight = tr.field_2000 + 1;
+        int entryCount = sorted.size();
+
+        int maxWidth = tr.method_27525(objective.method_1114());
+        for (class_9011 entry : sorted) {
+            maxWidth = Math.max(maxWidth, tr.method_1727(entry.comp_2127()));
         }
+        maxWidth += 8;
 
-        @Override
-        protected void applyValue() {}
+        int boardRight = screenWidth - 3 + cfg.offsetX;
+        int boardLeft = boardRight - maxWidth;
+        int bottomY = screenHeight / 2 + entryCount * lineHeight / 3 + cfg.offsetY;
+
+        for (int i = 0; i < sorted.size(); i++) {
+            class_9011 entry = sorted.get(i);
+            class_2561 replacement = getReplacement(entry.comp_2127(), cfg);
+            if (replacement == null) continue;
+
+            int lineY = bottomY - (i + 1) * lineHeight;
+            context.method_51439(tr, replacement, boardLeft, lineY, 0xFFFFFF, false);
+        }
+    }
+
+    private List<class_2561> buildFakeLines(ModConfig cfg) {
+        List<class_2561> lines = new ArrayList<>();
+        lines.add(parseColoredText("&#fc8a1a&l  ⚡ &#fc1a1a&lАнархия-105"));
+        lines.add(parseColoredText("&#FC1A1A╔&#F21717═&#E81515═&#DE1212═&#D41010═&#CA0D0D═&#BF0A0A═&#B50808═&#AB0505═&#A10303═&#970000═"));
+        lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700" + cfg.fakeNickname));
+        lines.add(parseColoredText("&#fc1a1a╠ &#00fcfc⭐ §fРанг:" + cfg.fakeRankColor + " " + cfg.fakeRank));
+        lines.add(parseColoredText("&#fc1a1a╠ &#fcfc1a$ §fМонет: &#fcfc1a" + cfg.fakeCoins));
+        lines.add(parseColoredText("&#fc1a1a╠ &#00fc00⛁ §fТокенов: &#00fc00" + cfg.fakeTokens));
+        lines.add(parseColoredText("&#fc1a1a╠"));
+        lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700Статистика"));
+        lines.add(parseColoredText("&#fc1a1a╠ §fУбийств: &#fcfc32" + cfg.fakeKills));
+        lines.add(parseColoredText("&#fc1a1a╠ &#fcfce3Смертей: &#fc3200" + cfg.fakeDeaths));
+        lines.add(parseColoredText("&#fc1a1a╠ &#fcfce3Наиграно: &#3297fc" + cfg.fakePlaytime));
+        lines.add(parseColoredText("&#fc1a1a╠"));
+        lines.add(parseColoredText("&#fc1a1a╠╣ &#fcfce3Донат &#65fc32/don"));
+        lines.add(parseColoredText("&#FC1A1A╚&#F21717═&#E81515═&#DE1212═&#D41010═&#CA0D0D═&#BF0A0A═&#B50808═&#AB0505═&#A10303═&#970000═"));
+        return lines;
+    }
+
+    private class_2561 getReplacement(String raw, ModConfig cfg) {
+        String s = raw.replaceAll("§.", "").trim();
+        if (s.contains("Ранг:"))
+            return parseColoredText("§7Ранг: " + cfg.fakeRankColor + " " + cfg.fakeRank);
+        if (s.contains("Монет:"))
+            return parseColoredText("§7Монет: §6" + cfg.fakeCoins);
+        if (s.contains("Токенов:"))
+            return parseColoredText("§7Токенов: §b" + cfg.fakeTokens);
+        if (s.contains("Черепков:"))
+            return parseColoredText("§7Черепков: §d" + cfg.fakeSkulls);
+        if (s.contains("Убийств:"))
+            return parseColoredText("§7Убийств: §a" + cfg.fakeKills);
+        if (s.contains("Смертей:"))
+            return parseColoredText("§7Смертей: §c" + cfg.fakeDeaths);
+        if (s.contains("Наиграно:"))
+            return parseColoredText("§7Наиграно: §e" + cfg.fakePlaytime);
+        if (!s.isEmpty() && !s.contains(":") && !s.contains(" ") && !cfg.fakeNickname.isEmpty())
+            return parseColoredText("§f" + cfg.fakeNickname);
+        return null;
+    }
+
+    /**
+     * Преобразует строку с hex-цветами (&#RRGGBB или #RRGGBB) и кодами форматирования (&l, §l, &o и т.д.)
+     * в объект Text с правильным форматированием.
+     */
+    private class_2561 parseColoredText(String raw) {
+        if (raw == null || raw.isEmpty()) return class_2561.method_43470("");
+
+        // Ищем: &#RRGGBB, #RRGGBB, или &x, или §x (где x - буква/цифра кода форматирования)
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(&?#[0-9a-fA-F]{6})|([&§][0-9a-z])");
+        java.util.regex.Matcher matcher = pattern.matcher(raw);
+        class_5250 result = class_2561.method_43470("");
+        int lastEnd = 0;
+        class_2583 currentStyle = class_2583.field_24360;
+
+        while (matcher.find()) {
+            if (matcher.start() > lastEnd) {
+                String textPart = raw.substring(lastEnd, matcher.start());
+                result.method_10852(class_2561.method_43470(textPart).method_10862(currentStyle));
+            }
+            String code = matcher.group();
+            if (code.startsWith("&#") || code.startsWith("#")) {
+                // Hex-цвет
+                String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
+                try {
+                    Optional<class_5251> optionalColor = class_5251.method_27719("#" + hex).result();
+                    if (optionalColor.isPresent()) {
+                        currentStyle = currentStyle.method_27703(optionalColor.get());
+                    }
+                } catch (Exception ignored) {}
+            } else {
+                // Код форматирования: &l, §l, &o, §o, &n, &m, &r и т.д.
+                char c = code.charAt(1);
+                currentStyle = applyFormatting(currentStyle, c);
+            }
+            lastEnd = matcher.end();
+        }
+        if (lastEnd < raw.length()) {
+            result.method_10852(class_2561.method_43470(raw.substring(lastEnd)).method_10862(currentStyle));
+        }
+        return result;
+    }
+
+    /**
+     * Применяет стандартный код форматирования Minecraft (цвет, жирный, курсив и т.д.)
+     */
+    private class_2583 applyFormatting(class_2583 style, char code) {
+        switch (code) {
+            case '0': return style.method_27703(class_5251.method_27717(0x000000));
+            case '1': return style.method_27703(class_5251.method_27717(0x0000AA));
+            case '2': return style.method_27703(class_5251.method_27717(0x00AA00));
+            case '3': return style.method_27703(class_5251.method_27717(0x00AAAA));
+            case '4': return style.method_27703(class_5251.method_27717(0xAA0000));
+            case '5': return style.method_27703(class_5251.method_27717(0xAA00AA));
+            case '6': return style.method_27703(class_5251.method_27717(0xFFAA00));
+            case '7': return style.method_27703(class_5251.method_27717(0xAAAAAA));
+            case '8': return style.method_27703(class_5251.method_27717(0x555555));
+            case '9': return style.method_27703(class_5251.method_27717(0x5555FF));
+            case 'a': return style.method_27703(class_5251.method_27717(0x55FF55));
+            case 'b': return style.method_27703(class_5251.method_27717(0x55FFFF));
+            case 'c': return style.method_27703(class_5251.method_27717(0xFF5555));
+            case 'd': return style.method_27703(class_5251.method_27717(0xFF55FF));
+            case 'e': return style.method_27703(class_5251.method_27717(0xFFFF55));
+            case 'f': return style.method_27703(class_5251.method_27717(0xFFFFFF));
+            case 'l': return style.method_10982(true);
+            case 'o': return style.method_10978(true);
+            case 'n': return style.method_30938(true);
+            case 'm': return style.method_36140(true);
+            case 'r': return class_2583.field_24360;
+            default: return style;
+        }
     }
 }
