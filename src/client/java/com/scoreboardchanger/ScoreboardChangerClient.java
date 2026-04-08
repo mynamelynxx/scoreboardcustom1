@@ -134,7 +134,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
     private List<Text> buildFakeLines(ModConfig cfg) {
         List<Text> lines = new ArrayList<>();
         lines.add(parseColoredText("§x§F§C§1§A§1§A╔§x§F§5§1§7§1§7═"));
-        lines.add(parseColoredText("§x§F§C§1§A§1§A╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
+        lines.add(parseColoredText("&#fc1a1a╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
         lines.add(parseColoredText("§7Ранг: " + cfg.fakeRankColor + " " + cfg.fakeRank));
         lines.add(parseColoredText("§7Монет: §6" + cfg.fakeCoins));
         lines.add(parseColoredText("§7Токенов: §b" + cfg.fakeTokens));
