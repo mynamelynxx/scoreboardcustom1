@@ -134,8 +134,8 @@ public class ScoreboardChangerClient implements ClientModInitializer {
     private List<Text> buildFakeLines(ModConfig cfg) {
         List<Text> lines = new ArrayList<>();
         lines.add(parseColoredText("§x§F§C§1§A§1§A╔§x§F§5§1§7§1§7═"));
-        lines.add(parseColoredText("&#fc1a1a╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
-        lines.add(parseColoredText("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank));
+        lines.add(parseColoredText("§x§F§C§1§A§1§A╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
+        lines.add(parseColoredText("§7Ранг: " + cfg.fakeRankColor + " " + cfg.fakeRank));
         lines.add(parseColoredText("§7Монет: §6" + cfg.fakeCoins));
         lines.add(parseColoredText("§7Токенов: §b" + cfg.fakeTokens));
         lines.add(parseColoredText("§7Черепков: §d" + cfg.fakeSkulls));
@@ -148,7 +148,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
     private Text getReplacement(String raw, ModConfig cfg) {
         String s = raw.replaceAll("§.", "").trim();
         if (s.contains("Ранг:"))
-            return parseColoredText("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank);
+            return parseColoredText("§7Ранг: " + cfg.fakeRankColor + " " + cfg.fakeRank);
         if (s.contains("Монет:"))
             return parseColoredText("§7Монет: §6" + cfg.fakeCoins);
         if (s.contains("Токенов:"))
@@ -188,7 +188,8 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (code.startsWith("&#") || code.startsWith("#")) {
                 String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
                 try {
-                    Optional<TextColor> optionalColor = TextColor.parse(hex).result();
+                    // Добавляем '#' перед hex для корректного парсинга
+                    Optional<TextColor> optionalColor = TextColor.parse("#" + hex).result();
                     if (optionalColor.isPresent()) {
                         currentStyle = currentStyle.withColor(optionalColor.get());
                     }
