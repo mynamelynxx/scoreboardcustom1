@@ -87,11 +87,12 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         int panelLeft = panelRight - maxWidth;
         int startY = 10 + cfg.offsetY;
 
-        context.drawCenteredTextWithShadow(tr, parseColoredText("§e[DEBUG]"), (panelLeft + panelRight) / 2, startY, 0xFFFF55);
+        // Без тени
+        context.drawCenteredText(tr, parseColoredText("§e[DEBUG]"), (panelLeft + panelRight) / 2, startY, 0xFFFF55, false);
 
         for (int i = 0; i < lines.size(); i++) {
             int lineY = startY + lineHeight + i * lineHeight;
-            context.drawTextWithShadow(tr, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF);
+            context.drawText(tr, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF, false);
         }
     }
 
@@ -127,14 +128,15 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (replacement == null) continue;
 
             int lineY = bottomY - (i + 1) * lineHeight;
-            context.drawTextWithShadow(tr, replacement, boardLeft, lineY, 0xFFFFFF);
+            // Без тени
+            context.drawText(tr, replacement, boardLeft, lineY, 0xFFFFFF, false);
         }
     }
 
     private List<Text> buildFakeLines(ModConfig cfg) {
         List<Text> lines = new ArrayList<>();
         lines.add(parseColoredText("§x§F§C§1§A§1§A╔§x§F§5§1§7§1§7═"));
-        lines.add(parseColoredText("&#fc1a1a╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
+        lines.add(parseColoredText("§x§F§C§1§A§1§A╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
         lines.add(parseColoredText("§7Ранг: " + cfg.fakeRankColor + " " + cfg.fakeRank));
         lines.add(parseColoredText("§7Монет: §6" + cfg.fakeCoins));
         lines.add(parseColoredText("§7Токенов: §b" + cfg.fakeTokens));
