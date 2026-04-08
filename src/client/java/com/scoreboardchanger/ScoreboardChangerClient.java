@@ -15,9 +15,11 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardDisplaySlot;
 import net.minecraft.scoreboard.ScoreboardEntry;
 import net.minecraft.scoreboard.ScoreboardObjective;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
+import net.minecraft.util.Formatting;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -85,7 +87,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         int panelLeft = panelRight - maxWidth;
         int startY = 10 + cfg.offsetY;
 
-        // Без фона
         context.drawCenteredTextWithShadow(tr, parseColoredText("§e[DEBUG]"), (panelLeft + panelRight) / 2, startY, 0xFFFF55);
 
         for (int i = 0; i < lines.size(); i++) {
@@ -126,7 +127,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (replacement == null) continue;
 
             int lineY = bottomY - (i + 1) * lineHeight;
-            // Без фона — строки fill полностью убраны
             context.drawTextWithShadow(tr, replacement, boardLeft, lineY, 0xFFFFFF);
         }
     }
@@ -175,21 +175,20 @@ public class ScoreboardChangerClient implements ClientModInitializer {
 
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(&?#[0-9a-fA-F]{6})|(§.)");
         java.util.regex.Matcher matcher = pattern.matcher(raw);
-        Text result = Text.literal("");
+        MutableText result = Text.literal("");
         int lastEnd = 0;
         Style currentStyle = Style.EMPTY;
 
         while (matcher.find()) {
             if (matcher.start() > lastEnd) {
                 String textPart = raw.substring(lastEnd, matcher.start());
-                result = result.append(Text.literal(textPart).setStyle(currentStyle));
+                result.append(Text.literal(textPart).setStyle(currentStyle));
             }
             String code = matcher.group();
             if (code.startsWith("&#") || code.startsWith("#")) {
                 String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
                 try {
-                    TextColor color = TextColor.parse(hex);
-                    currentStyle = currentStyle.withColor(color);
+                    TextColor.parse(hex).result().ifPresent(color -> currentStyle = currentStyle.withColor(color));
                 } catch (Exception ignored) {}
             } else if (code.startsWith("§")) {
                 char c = code.charAt(1);
@@ -198,7 +197,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             lastEnd = matcher.end();
         }
         if (lastEnd < raw.length()) {
-            result = result.append(Text.literal(raw.substring(lastEnd)).setStyle(currentStyle));
+            result.append(Text.literal(raw.substring(lastEnd)).setStyle(currentStyle));
         }
         return result;
     }
