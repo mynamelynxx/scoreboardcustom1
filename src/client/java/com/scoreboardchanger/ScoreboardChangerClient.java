@@ -141,9 +141,24 @@ public class ScoreboardChangerScreen extends Screen {
         context.drawTextWithShadow(textRenderer, "Наиграно:",   col2X, y0+gap*2+5,   0xAAAAAA);
 
         // Превью ранга
-        String preview = RANK_COLORS[selectedColorIndex] + rankField.getText();
-        context.drawTextWithShadow(textRenderer, "Превью:", col2X, y0+gap*4, 0x888888);
-        context.drawTextWithShadow(textRenderer, Text.literal(preview), col2X, y0+gap*5, 0xFFFFFF);
+        // Превью ранга
+String colorCode = RANK_COLORS[selectedColorIndex];
+String rankText = rankField.getText();
+Text coloredRank;
+
+if (colorCode.startsWith("§x")) {
+    // Преобразуем §x§F§F§0§0§2§E в цвет #ff002e
+    // Убираем все § и первый символ 'x' → получаем "FF002E"
+    String hex = colorCode.replace("§", "").substring(1); // "FF002E"
+    int rgb = Integer.parseInt(hex, 16);                 // 0xFF002E
+    coloredRank = Text.literal(rankText).styled(style -> style.withColor(rgb));
+} else {
+    // Обычные цвета §a, §b и т.д. – просто склеиваем
+    coloredRank = Text.literal(colorCode + rankText);
+}
+
+context.drawTextWithShadow(textRenderer, "Превью:", col2X, y0+gap*4, 0x888888);
+context.drawTextWithShadow(textRenderer, coloredRank, col2X, y0+gap*5, 0xFFFFFF);
 
         context.drawTextWithShadow(textRenderer,
                 "§7Дебаг: показывает overlay без сервера. Ползунки — подстрой под скорборд.",
