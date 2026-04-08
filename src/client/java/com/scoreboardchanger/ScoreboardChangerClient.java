@@ -88,7 +88,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         int startY = 10 + cfg.offsetY;
 
         // Центрированный текст без тени (ручной расчёт)
-        Text debugText = parseColoredText("§e[DEBUG]");
+        Text debugText = parseColoredText("&#fc8a1a&l⚡ &#fc1a1a&lАнархия-506");
         int debugX = (panelLeft + panelRight) / 2 - tr.getWidth(debugText) / 2;
         context.drawText(tr, debugText, debugX, startY, 0xFFFF55, false);
 
