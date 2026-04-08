@@ -87,8 +87,10 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         int panelLeft = panelRight - maxWidth;
         int startY = 10 + cfg.offsetY;
 
-        // Без тени
-        context.drawCenteredText(tr, parseColoredText("§e[DEBUG]"), (panelLeft + panelRight) / 2, startY, 0xFFFF55, false);
+        // Центрированный текст без тени (ручной расчёт)
+        Text debugText = parseColoredText("§e[DEBUG]");
+        int debugX = (panelLeft + panelRight) / 2 - tr.getWidth(debugText) / 2;
+        context.drawText(tr, debugText, debugX, startY, 0xFFFF55, false);
 
         for (int i = 0; i < lines.size(); i++) {
             int lineY = startY + lineHeight + i * lineHeight;
@@ -128,7 +130,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (replacement == null) continue;
 
             int lineY = bottomY - (i + 1) * lineHeight;
-            // Без тени
             context.drawText(tr, replacement, boardLeft, lineY, 0xFFFFFF, false);
         }
     }
@@ -190,7 +191,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (code.startsWith("&#") || code.startsWith("#")) {
                 String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
                 try {
-                    // Добавляем '#' перед hex для корректного парсинга
                     Optional<TextColor> optionalColor = TextColor.parse("#" + hex).result();
                     if (optionalColor.isPresent()) {
                         currentStyle = currentStyle.withColor(optionalColor.get());
