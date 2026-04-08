@@ -10,13 +10,28 @@ import net.minecraft.text.Text;
 
 public class ScoreboardChangerScreen extends Screen {
 
-    private static final String[] RANK_COLORS     = {"§f","§a","§b","§e","§6","§x§F§F§0§0§2§E","§4","§d","§5","§9"};
-    private static final String[] RANK_COLOR_NAMES = {"Белый","Зелёный","Голубой","Жёлтый","Золотой","Красный","Тёмно-красный","Розовый","Фиолетовый","Синий"};
+    // Предопределённые цвета в формате RGB (int)
+    private static final int[] RANK_COLORS_RGB = {
+        0xFFFFFF, // Белый
+        0x55FF55, // Зелёный (яркий)
+        0x55FFFF, // Голубой
+        0xFFFF55, // Жёлтый
+        0xFFAA00, // Золотой
+        0xFF002E, // Красный (ваш точный цвет)
+        0xAA0000, // Тёмно-красный
+        0xFF55FF, // Розовый
+        0xAA00AA, // Фиолетовый
+        0x5555FF  // Синий
+    };
+    private static final String[] RANK_COLOR_NAMES = {
+        "Белый", "Зелёный", "Голубой", "Жёлтый", "Золотой",
+        "Красный", "Тёмно-красный", "Розовый", "Фиолетовый", "Синий"
+    };
 
     private TextFieldWidget nicknameField, rankField, coinsField, tokensField,
             skullsField, killsField, deathsField, playtimeField;
 
-    private int selectedColorIndex = 0;
+    private int selectedColorRGB = 0xFF002E;
     private ButtonWidget colorBtn;
     private ButtonWidget enableBtn, debugBtn;
 
@@ -30,8 +45,16 @@ public class ScoreboardChangerScreen extends Screen {
     protected void init() {
         ModConfig cfg = ModConfig.getInstance();
 
-        for (int i = 0; i < RANK_COLORS.length; i++) {
-            if (RANK_COLORS[i].equals(cfg.fakeRankColor)) { selectedColorIndex = i; break; }
+        // Устанавливаем выбранный цвет из конфига (теперь int)
+        selectedColorRGB = cfg.rankColorRGB;
+
+        // Находим индекс для отображения имени цвета (для кнопки)
+        int selectedIdx = 0;
+        for (int i = 0; i < RANK_COLORS_RGB.length; i++) {
+            if (RANK_COLORS_RGB[i] == selectedColorRGB) {
+                selectedIdx = i;
+                break;
+            }
         }
 
         int col1X = this.width / 2 - 220;
@@ -45,11 +68,21 @@ public class ScoreboardChangerScreen extends Screen {
         nicknameField = addField(col1X + 90, y0,         fW, fH, cfg.fakeNickname);
         rankField     = addField(col1X + 90, y0 + gap,   fW, fH, cfg.fakeRank);
 
+        // Кнопка выбора цвета – перебирает цвета из массива RGB
         colorBtn = addDrawableChild(ButtonWidget.builder(
-                Text.literal("Цвет: " + RANK_COLOR_NAMES[selectedColorIndex]),
+                Text.literal("Цвет: " + RANK_COLOR_NAMES[selectedIdx]),
                 btn -> {
-                    selectedColorIndex = (selectedColorIndex + 1) % RANK_COLORS.length;
-                    btn.setMessage(Text.literal("Цвет: " + RANK_COLOR_NAMES[selectedColorIndex]));
+                    // Ищем следующий индекс
+                    int currentIdx = -1;
+                    for (int i = 0; i < RANK_COLORS_RGB.length; i++) {
+                        if (RANK_COLORS_RGB[i] == selectedColorRGB) {
+                            currentIdx = i;
+                            break;
+                        }
+                    }
+                    int nextIdx = (currentIdx + 1) % RANK_COLORS_RGB.length;
+                    selectedColorRGB = RANK_COLORS_RGB[nextIdx];
+                    btn.setMessage(Text.literal("Цвет: " + RANK_COLOR_NAMES[nextIdx]));
                 }).dimensions(col1X + 90, y0 + gap * 2, fW, fH).build());
 
         coinsField  = addField(col1X + 90, y0 + gap * 3, fW, fH, cfg.fakeCoins);
@@ -69,7 +102,7 @@ public class ScoreboardChangerScreen extends Screen {
         addDrawableChild(sliderX);
         addDrawableChild(sliderY);
 
-        // === Кнопки ===
+        // === Кнопки действий ===
         int btnY = this.height - 55;
 
         enableBtn = addDrawableChild(ButtonWidget.builder(
@@ -105,7 +138,7 @@ public class ScoreboardChangerScreen extends Screen {
         ModConfig cfg = ModConfig.getInstance();
         cfg.fakeNickname  = nicknameField.getText();
         cfg.fakeRank      = rankField.getText();
-        cfg.fakeRankColor = RANK_COLORS[selectedColorIndex];
+        cfg.rankColorRGB  = selectedColorRGB;   // сохраняем как int
         cfg.fakeCoins     = coinsField.getText();
         cfg.fakeTokens    = tokensField.getText();
         cfg.fakeSkulls    = skullsField.getText();
@@ -129,6 +162,7 @@ public class ScoreboardChangerScreen extends Screen {
         int y0    = 25;
         int gap   = 26;
 
+        // Подписи полей
         context.drawTextWithShadow(textRenderer, "Никнейм:",    col1X, y0+5,         0xAAAAAA);
         context.drawTextWithShadow(textRenderer, "Ранг:",       col1X, y0+gap+5,     0xAAAAAA);
         context.drawTextWithShadow(textRenderer, "Цвет ранга:", col1X, y0+gap*2+5,   0xAAAAAA);
@@ -140,10 +174,11 @@ public class ScoreboardChangerScreen extends Screen {
         context.drawTextWithShadow(textRenderer, "Смерти:",     col2X, y0+gap+5,     0xAAAAAA);
         context.drawTextWithShadow(textRenderer, "Наиграно:",   col2X, y0+gap*2+5,   0xAAAAAA);
 
-        // Превью ранга
-        String preview = RANK_COLORS[selectedColorIndex] + rankField.getText();
+        // Превью ранга с точным RGB-цветом
+        String rankText = rankField.getText();
+        Text coloredRank = Text.literal(rankText).styled(style -> style.withColor(selectedColorRGB));
         context.drawTextWithShadow(textRenderer, "Превью:", col2X, y0+gap*4, 0x888888);
-        context.drawTextWithShadow(textRenderer, Text.literal(preview), col2X, y0+gap*5, 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, coloredRank, col2X, y0+gap*5, 0xFFFFFF);
 
         context.drawTextWithShadow(textRenderer,
                 "§7Дебаг: показывает overlay без сервера. Ползунки — подстрой под скорборд.",
@@ -156,7 +191,7 @@ public class ScoreboardChangerScreen extends Screen {
     @Override
     public void close() { this.client.setScreen(null); }
 
-    // ---- Slider ----
+    // ---- Slider (без изменений) ----
     public static class OffsetSlider extends SliderWidget {
         private final String label;
         private final int min, max;
