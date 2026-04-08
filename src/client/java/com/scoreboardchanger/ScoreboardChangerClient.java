@@ -127,8 +127,8 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (code.startsWith("&#") || code.startsWith("#")) {
                 String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
                 try {
-                    TextColor color = TextColor.parse("#" + hex);
-                    currentStyle = currentStyle.withColor(color);
+                    // Исправление: parse возвращает DataResult, нужно вызвать result()
+                    TextColor.parse("#" + hex).result().ifPresent(color -> currentStyle = currentStyle.withColor(color));
                 } catch (Exception ignored) {}
             } else {
                 char c = code.charAt(1);
