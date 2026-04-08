@@ -83,13 +83,15 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         int panelLeft = panelRight - maxWidth;
         int startY = 10 + cfg.offsetY;
 
-        context.fill(panelLeft, startY - 1, panelRight, startY + lineHeight, 0xFF1B1B1B);
+        // Фон полностью убран (прозрачность 100%)
+        // context.fill(panelLeft, startY - 1, panelRight, startY + lineHeight, 0xFF1B1B1B);
         context.drawCenteredTextWithShadow(tr, Text.literal("§e[DEBUG]"), (panelLeft + panelRight) / 2, startY, 0xFFFF55);
 
         for (int i = 0; i < lines.size(); i++) {
             int lineY = startY + lineHeight + i * lineHeight;
-            context.fill(panelLeft, lineY - 1, panelRight, lineY + lineHeight - 1,
-                    i % 2 == 0 ? 0xAA1B1B1B : 0xAA222222);
+            // Без фона
+            // context.fill(panelLeft, lineY - 1, panelRight, lineY + lineHeight - 1,
+            //         i % 2 == 0 ? 0xAA1B1B1B : 0xAA222222);
             context.drawTextWithShadow(tr, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF);
         }
     }
@@ -126,9 +128,10 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (replacement == null) continue;
 
             int lineY = bottomY - (i + 1) * lineHeight;
-            context.fill(boardLeft - 2, lineY - 1, boardRight + 2, lineY + lineHeight - 1, 0xFF000000);
-            context.fill(boardLeft - 1, lineY - 1, boardRight + 1, lineY + lineHeight - 1,
-                    i % 2 == 0 ? 0xAA000000 : 0x88000000);
+            // Полностью прозрачный фон — строки fill убраны
+            // context.fill(boardLeft - 2, lineY - 1, boardRight + 2, lineY + lineHeight - 1, 0xFF000000);
+            // context.fill(boardLeft - 1, lineY - 1, boardRight + 1, lineY + lineHeight - 1,
+            //         i % 2 == 0 ? 0xAA000000 : 0x88000000);
             context.drawTextWithShadow(tr, replacement, boardLeft, lineY, 0xFFFFFF);
         }
     }
