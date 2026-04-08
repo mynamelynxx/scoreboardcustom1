@@ -11,9 +11,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.scoreboard.Scoreboard;
-import net.minecraft.scoreboard.ScoreboardObjective;
-import net.minecraft.scoreboard.ScoreboardPlayerScore;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
@@ -21,9 +18,7 @@ import net.minecraft.text.Style;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class ScoreboardChangerClient implements ClientModInitializer {
@@ -49,27 +44,16 @@ public class ScoreboardChangerClient implements ClientModInitializer {
 
         HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
             ModConfig cfg = ModConfig.getInstance();
-            if (!cfg.enabled) return;
+            if (!cfg.enabled && !cfg.debugMode) return;
 
             MinecraftClient client = MinecraftClient.getInstance();
-            if (client == null) return;
+            if (client == null || client.player == null) return;
 
-            if (cfg.debugMode) {
-                renderDebugOverlay(drawContext, client, cfg);
-                return;
-            }
-
-            if (client.world == null || client.player == null) return;
-
-            Scoreboard scoreboard = client.world.getScoreboard();
-            ScoreboardObjective objective = scoreboard.getObjectiveForSlot(1); // 1 = sidebar
-            if (objective == null) return;
-
-            renderOverlay(drawContext, client, cfg, scoreboard, objective);
+            renderOverlay(drawContext, client, cfg);
         });
     }
 
-    private void renderDebugOverlay(DrawContext context, MinecraftClient client, ModConfig cfg) {
+    private void renderOverlay(DrawContext context, MinecraftClient client, ModConfig cfg) {
         TextRenderer textRenderer = client.textRenderer;
         int screenWidth = client.getWindow().getScaledWidth();
         int lineHeight = textRenderer.fontHeight + 1;
@@ -88,42 +72,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         for (int i = 0; i < lines.size(); i++) {
             int lineY = startY + lineHeight + i * lineHeight;
             context.drawTextWithShadow(textRenderer, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF);
-        }
-    }
-
-    private void renderOverlay(DrawContext context, MinecraftClient client,
-                                ModConfig cfg, Scoreboard scoreboard, ScoreboardObjective objective) {
-        TextRenderer textRenderer = client.textRenderer;
-        int screenWidth = client.getWindow().getScaledWidth();
-        int screenHeight = client.getWindow().getScaledHeight();
-
-        Collection<ScoreboardPlayerScore> entries = scoreboard.getAllPlayerScores(objective);
-        if (entries == null || entries.isEmpty()) return;
-
-        List<ScoreboardPlayerScore> sorted = new ArrayList<>(entries);
-        sorted.sort((a, b) -> Integer.compare(b.getScore(), a.getScore()));
-        if (sorted.size() > 15) sorted = sorted.subList(0, 15);
-
-        int lineHeight = textRenderer.fontHeight + 1;
-        int entryCount = sorted.size();
-
-        int maxWidth = textRenderer.getWidth(objective.getDisplayName());
-        for (ScoreboardPlayerScore entry : sorted) {
-            maxWidth = Math.max(maxWidth, textRenderer.getWidth(entry.getPlayerName()));
-        }
-        maxWidth += 8;
-
-        int boardRight = screenWidth - 3 + cfg.offsetX;
-        int boardLeft = boardRight - maxWidth;
-        int bottomY = screenHeight / 2 + entryCount * lineHeight / 3 + cfg.offsetY;
-
-        for (int i = 0; i < sorted.size(); i++) {
-            ScoreboardPlayerScore entry = sorted.get(i);
-            Text replacement = getReplacement(entry.getPlayerName(), cfg);
-            if (replacement == null) continue;
-
-            int lineY = bottomY - (i + 1) * lineHeight;
-            context.drawTextWithShadow(textRenderer, replacement, boardLeft, lineY, 0xFFFFFF);
         }
     }
 
@@ -146,31 +94,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         return lines;
     }
 
-    private Text getReplacement(String raw, ModConfig cfg) {
-        String s = raw.replaceAll("§.", "").trim();
-        if (s.contains("Ранг:"))
-            return parseColoredText("§7Ранг: " + cfg.fakeRankColor + " " + cfg.fakeRank);
-        if (s.contains("Монет:"))
-            return parseColoredText("§7Монет: §6" + cfg.fakeCoins);
-        if (s.contains("Токенов:"))
-            return parseColoredText("§7Токенов: §b" + cfg.fakeTokens);
-        if (s.contains("Черепков:"))
-            return parseColoredText("§7Черепков: §d" + cfg.fakeSkulls);
-        if (s.contains("Убийств:"))
-            return parseColoredText("§7Убийств: §a" + cfg.fakeKills);
-        if (s.contains("Смертей:"))
-            return parseColoredText("§7Смертей: §c" + cfg.fakeDeaths);
-        if (s.contains("Наиграно:"))
-            return parseColoredText("§7Наиграно: §e" + cfg.fakePlaytime);
-        if (!s.isEmpty() && !s.contains(":") && !s.contains(" ") && !cfg.fakeNickname.isEmpty())
-            return parseColoredText("§f" + cfg.fakeNickname);
-        return null;
-    }
-
-    /**
-     * Преобразует строку с hex-цветами (&#RRGGBB, #RRGGBB, §x§R§R§G§G§B§B)
-     * и кодами форматирования (&l, §l, &o, §o и т.д.) в объект Text.
-     */
     private Text parseColoredText(String raw) {
         if (raw == null || raw.isEmpty()) return Text.empty();
 
