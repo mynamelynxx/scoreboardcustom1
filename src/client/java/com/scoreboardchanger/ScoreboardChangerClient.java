@@ -138,9 +138,11 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         List<Text> lines = new ArrayList<>();
         lines.add(parseColoredText("&#FC1A1A╔&#F21717═&#E81515═&#DE1212═&#D41010═&#CA0D0D═&#BF0A0A═&#B50808═&#AB0505═&#A10303═&#970000═"));
         lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700" + cfg.fakeNickname));
-        lines.add(parseColoredText("&#fc1a1a╠ &#00fcfc⭐&fРанг: " + cfg.fakeRankColor + " " + cfg.fakeRank));
-        lines.add(parseColoredText("&#fc1a1a╠ &#fcfc1a$ &fМонет: &#fcfc1a" + cfg.fakeCoins));
-        lines.add(parseColoredText("&#fc1a1a╠ &#00fc00⛁ &fТокенов: &#00fc00777" + cfg.fakeTokens));
+        lines.add(parseColoredText("&#fc1a1a╠ &#00fcfc⭐ &#fРанг: " + cfg.fakeRankColor + " " + cfg.fakeRank));
+        lines.add(parseColoredText("&#fc1a1a╠ &#fcfc1a$ &#fМонет: &#fcfc1a" + cfg.fakeCoins));
+        lines.add(parseColoredText("&#fc1a1a╠ &#00fc00⛁ &#fТокенов: &#00fc00777" + cfg.fakeTokens));
+        lines.add(parseColoredText("&#fc1a1a╠"));
+        lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700Статистика"));
         lines.add(parseColoredText("§x§F§C§1§A§1§A╠ §fУбийств: §a" + cfg.fakeKills));
         lines.add(parseColoredText("§7Смертей: §c" + cfg.fakeDeaths));
         lines.add(parseColoredText("§7Наиграно: §e" + cfg.fakePlaytime));
