@@ -111,7 +111,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             converted = converted.replace(fullMatch, hex.toString());
         }
 
-        // Обрабатываем &#RRGGBB, #RRGGBB и коды &l, §l и т.д.
         Pattern pattern = Pattern.compile("(&?#[0-9a-fA-F]{6})|([&§][0-9a-z])");
         var matcher = pattern.matcher(converted);
         MutableText result = Text.empty();
@@ -126,10 +125,10 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             String code = matcher.group();
             if (code.startsWith("&#") || code.startsWith("#")) {
                 String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
-                try {
-                    // Исправление: parse возвращает DataResult, нужно вызвать result()
-                    TextColor.parse("#" + hex).result().ifPresent(color -> currentStyle = currentStyle.withColor(color));
-                } catch (Exception ignored) {}
+                var dataResult = TextColor.parse("#" + hex);
+                if (dataResult.result().isPresent()) {
+                    currentStyle = currentStyle.withColor(dataResult.result().get());
+                }
             } else {
                 char c = code.charAt(1);
                 currentStyle = applyFormatting(currentStyle, c);
