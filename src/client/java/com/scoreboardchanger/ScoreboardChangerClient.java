@@ -19,12 +19,12 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
-import net.minecraft.util.Formatting;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public class ScoreboardChangerClient implements ClientModInitializer {
 
@@ -188,7 +188,10 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (code.startsWith("&#") || code.startsWith("#")) {
                 String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
                 try {
-                    TextColor.parse(hex).result().ifPresent(color -> currentStyle = currentStyle.withColor(color));
+                    Optional<TextColor> optionalColor = TextColor.parse(hex).result();
+                    if (optionalColor.isPresent()) {
+                        currentStyle = currentStyle.withColor(optionalColor.get());
+                    }
                 } catch (Exception ignored) {}
             } else if (code.startsWith("§")) {
                 char c = code.charAt(1);
