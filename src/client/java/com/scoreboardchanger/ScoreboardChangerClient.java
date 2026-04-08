@@ -10,7 +10,7 @@ import net.minecraft.text.Text;
 
 public class ScoreboardChangerScreen extends Screen {
 
-    private static final String[] RANK_COLORS     = {"§f","§a","§b","§e","§6","§x§F§F§0§0§2§E","§4","§d","§5","§9"};
+    private static final String[] RANK_COLORS = {"§f","§a","§b","§e","§6","§x§F§F§0§0§2§E","§4","§d","§5","§9"};
     private static final String[] RANK_COLOR_NAMES = {"Белый","Зелёный","Голубой","Жёлтый","Золотой","Красный","Тёмно-красный","Розовый","Фиолетовый","Синий"};
 
     private TextFieldWidget nicknameField, rankField, coinsField, tokensField,
@@ -19,7 +19,6 @@ public class ScoreboardChangerScreen extends Screen {
     private int selectedColorIndex = 0;
     private ButtonWidget colorBtn;
     private ButtonWidget enableBtn, debugBtn;
-
     private OffsetSlider sliderX, sliderY;
 
     public ScoreboardChangerScreen() {
@@ -30,20 +29,21 @@ public class ScoreboardChangerScreen extends Screen {
     protected void init() {
         ModConfig cfg = ModConfig.getInstance();
 
+        // Определяем индекс по сохранённой строке цвета
+        String savedColor = cfg.fakeRankColor; // используем существующее поле
         for (int i = 0; i < RANK_COLORS.length; i++) {
-            if (RANK_COLORS[i].equals(cfg.fakeRankColor)) { selectedColorIndex = i; break; }
+            if (RANK_COLORS[i].equals(savedColor)) {
+                selectedColorIndex = i;
+                break;
+            }
         }
 
         int col1X = this.width / 2 - 220;
         int col2X = this.width / 2 + 10;
-        int y0    = 25;
-        int gap   = 26;
-        int fW    = 150;
-        int fH    = 18;
+        int y0 = 25, gap = 26, fW = 150, fH = 18;
 
-        // === Колонка 1 ===
-        nicknameField = addField(col1X + 90, y0,         fW, fH, cfg.fakeNickname);
-        rankField     = addField(col1X + 90, y0 + gap,   fW, fH, cfg.fakeRank);
+        nicknameField = addField(col1X + 90, y0, fW, fH, cfg.fakeNickname);
+        rankField = addField(col1X + 90, y0 + gap, fW, fH, cfg.fakeRank);
 
         colorBtn = addDrawableChild(ButtonWidget.builder(
                 Text.literal("Цвет: " + RANK_COLOR_NAMES[selectedColorIndex]),
@@ -52,26 +52,20 @@ public class ScoreboardChangerScreen extends Screen {
                     btn.setMessage(Text.literal("Цвет: " + RANK_COLOR_NAMES[selectedColorIndex]));
                 }).dimensions(col1X + 90, y0 + gap * 2, fW, fH).build());
 
-        coinsField  = addField(col1X + 90, y0 + gap * 3, fW, fH, cfg.fakeCoins);
+        coinsField = addField(col1X + 90, y0 + gap * 3, fW, fH, cfg.fakeCoins);
         tokensField = addField(col1X + 90, y0 + gap * 4, fW, fH, cfg.fakeTokens);
         skullsField = addField(col1X + 90, y0 + gap * 5, fW, fH, cfg.fakeSkulls);
 
-        // === Колонка 2 ===
-        killsField    = addField(col2X + 90, y0,         fW, fH, cfg.fakeKills);
-        deathsField   = addField(col2X + 90, y0 + gap,   fW, fH, cfg.fakeDeaths);
-        playtimeField = addField(col2X + 90, y0 + gap*2, fW, fH, cfg.fakePlaytime);
+        killsField = addField(col2X + 90, y0, fW, fH, cfg.fakeKills);
+        deathsField = addField(col2X + 90, y0 + gap, fW, fH, cfg.fakeDeaths);
+        playtimeField = addField(col2X + 90, y0 + gap * 2, fW, fH, cfg.fakePlaytime);
 
-        // === Ползунки смещения ===
-        int sY1 = y0 + gap * 7;
-        int sY2 = y0 + gap * 8;
-        sliderX = new OffsetSlider(col1X, sY1, 200, 18, "Смещение X", cfg.offsetX, -300, 300);
-        sliderY = new OffsetSlider(col1X, sY2, 200, 18, "Смещение Y", cfg.offsetY, -300, 300);
+        sliderX = new OffsetSlider(col1X, y0 + gap * 7, 200, 18, "Смещение X", cfg.offsetX, -300, 300);
+        sliderY = new OffsetSlider(col1X, y0 + gap * 8, 200, 18, "Смещение Y", cfg.offsetY, -300, 300);
         addDrawableChild(sliderX);
         addDrawableChild(sliderY);
 
-        // === Кнопки ===
         int btnY = this.height - 55;
-
         enableBtn = addDrawableChild(ButtonWidget.builder(
                 Text.literal(cfg.enabled ? "§aВключено" : "§cВыключено"),
                 btn -> {
@@ -88,7 +82,6 @@ public class ScoreboardChangerScreen extends Screen {
 
         addDrawableChild(ButtonWidget.builder(Text.literal("Сохранить"), btn -> save())
                 .dimensions(this.width / 2 + 55, btnY, 100, 20).build());
-
         addDrawableChild(ButtonWidget.builder(Text.literal("Закрыть"), btn -> close())
                 .dimensions(this.width / 2 + 55, btnY + 25, 100, 20).build());
     }
@@ -103,17 +96,17 @@ public class ScoreboardChangerScreen extends Screen {
 
     private void save() {
         ModConfig cfg = ModConfig.getInstance();
-        cfg.fakeNickname  = nicknameField.getText();
-        cfg.fakeRank      = rankField.getText();
-        cfg.fakeRankColor = RANK_COLORS[selectedColorIndex];
-        cfg.fakeCoins     = coinsField.getText();
-        cfg.fakeTokens    = tokensField.getText();
-        cfg.fakeSkulls    = skullsField.getText();
-        cfg.fakeKills     = killsField.getText();
-        cfg.fakeDeaths    = deathsField.getText();
-        cfg.fakePlaytime  = playtimeField.getText();
-        cfg.offsetX       = sliderX.getIntValue();
-        cfg.offsetY       = sliderY.getIntValue();
+        cfg.fakeNickname = nicknameField.getText();
+        cfg.fakeRank = rankField.getText();
+        cfg.fakeRankColor = RANK_COLORS[selectedColorIndex]; // сохраняем строку цвета
+        cfg.fakeCoins = coinsField.getText();
+        cfg.fakeTokens = tokensField.getText();
+        cfg.fakeSkulls = skullsField.getText();
+        cfg.fakeKills = killsField.getText();
+        cfg.fakeDeaths = deathsField.getText();
+        cfg.fakePlaytime = playtimeField.getText();
+        cfg.offsetX = sliderX.getIntValue();
+        cfg.offsetY = sliderY.getIntValue();
         ModConfig.save();
     }
 
@@ -121,44 +114,43 @@ public class ScoreboardChangerScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         renderBackground(context, mouseX, mouseY, delta);
         super.render(context, mouseX, mouseY, delta);
-
         context.drawCenteredTextWithShadow(textRenderer, this.title, this.width / 2, 8, 0xFFFFFF);
 
         int col1X = this.width / 2 - 220;
         int col2X = this.width / 2 + 10;
-        int y0    = 25;
-        int gap   = 26;
+        int y0 = 25, gap = 26;
 
-        context.drawTextWithShadow(textRenderer, "Никнейм:",    col1X, y0+5,         0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Ранг:",       col1X, y0+gap+5,     0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Цвет ранга:", col1X, y0+gap*2+5,   0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Монеты:",     col1X, y0+gap*3+5,   0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Токены:",     col1X, y0+gap*4+5,   0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Черепки:",    col1X, y0+gap*5+5,   0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Никнейм:", col1X, y0 + 5, 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Ранг:", col1X, y0 + gap + 5, 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Цвет ранга:", col1X, y0 + gap * 2 + 5, 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Монеты:", col1X, y0 + gap * 3 + 5, 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Токены:", col1X, y0 + gap * 4 + 5, 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Черепки:", col1X, y0 + gap * 5 + 5, 0xAAAAAA);
 
-        context.drawTextWithShadow(textRenderer, "Убийства:",   col2X, y0+5,         0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Смерти:",     col2X, y0+gap+5,     0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Наиграно:",   col2X, y0+gap*2+5,   0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Убийства:", col2X, y0 + 5, 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Смерти:", col2X, y0 + gap + 5, 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Наиграно:", col2X, y0 + gap * 2 + 5, 0xAAAAAA);
 
-        // Превью ранга
-        // Превью ранга
-String colorCode = RANK_COLORS[selectedColorIndex];
-String rankText = rankField.getText();
-Text coloredRank;
+        // === Превью ранга с поддержкой §x ===
+        String colorCode = RANK_COLORS[selectedColorIndex];
+        String rankText = rankField.getText();
+        Text coloredRank;
 
-if (colorCode.startsWith("§x")) {
-    // Преобразуем §x§F§F§0§0§2§E в цвет #ff002e
-    // Убираем все § и первый символ 'x' → получаем "FF002E"
-    String hex = colorCode.replace("§", "").substring(1); // "FF002E"
-    int rgb = Integer.parseInt(hex, 16);                 // 0xFF002E
-    coloredRank = Text.literal(rankText).styled(style -> style.withColor(rgb));
-} else {
-    // Обычные цвета §a, §b и т.д. – просто склеиваем
-    coloredRank = Text.literal(colorCode + rankText);
-}
+        if (colorCode.startsWith("§x")) {
+            // Преобразуем §x§F§F§0§0§2§E → "FF002E"
+            String hex = colorCode.replace("§", "").substring(1);
+            try {
+                int rgb = Integer.parseInt(hex, 16);
+                coloredRank = Text.literal(rankText).styled(style -> style.withColor(rgb));
+            } catch (NumberFormatException e) {
+                coloredRank = Text.literal(rankText);
+            }
+        } else {
+            coloredRank = Text.literal(colorCode + rankText);
+        }
 
-context.drawTextWithShadow(textRenderer, "Превью:", col2X, y0+gap*4, 0x888888);
-context.drawTextWithShadow(textRenderer, coloredRank, col2X, y0+gap*5, 0xFFFFFF);
+        context.drawTextWithShadow(textRenderer, "Превью:", col2X, y0 + gap * 4, 0x888888);
+        context.drawTextWithShadow(textRenderer, coloredRank, col2X, y0 + gap * 5, 0xFFFFFF);
 
         context.drawTextWithShadow(textRenderer,
                 "§7Дебаг: показывает overlay без сервера. Ползунки — подстрой под скорборд.",
@@ -171,16 +163,15 @@ context.drawTextWithShadow(textRenderer, coloredRank, col2X, y0+gap*5, 0xFFFFFF)
     @Override
     public void close() { this.client.setScreen(null); }
 
-    // ---- Slider ----
     public static class OffsetSlider extends SliderWidget {
         private final String label;
         private final int min, max;
 
         public OffsetSlider(int x, int y, int width, int height, String label, int current, int min, int max) {
-            super(x, y, width, height, Text.empty(), (double)(current - min) / (max - min));
+            super(x, y, width, height, Text.empty(), (double) (current - min) / (max - min));
             this.label = label;
-            this.min   = min;
-            this.max   = max;
+            this.min = min;
+            this.max = max;
             updateMessage();
         }
 
