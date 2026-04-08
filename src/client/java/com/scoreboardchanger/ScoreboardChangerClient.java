@@ -135,13 +135,13 @@ public class ScoreboardChangerClient implements ClientModInitializer {
 
     private List<Text> buildFakeLines(ModConfig cfg) {
         List<Text> lines = new ArrayList<>();
-        lines.add(Text.literal("&#FFFFFF&#FF1A1A╔&#F51717═&#EB1515═&#E01212═&#D61010═&#CC0D0D═&#C20A0A═&#B80808═&#AD0505═&#A30303═&#990000═&#FFFF"));
+        lines.add(Text.literal("&#FC1A1A╔&#F51717═&#EB1515═&#E01212═&#D61010═&#CC0D0D═&#C20A0A═&#B80808═&#AD0505═&#A30303═&#990000═&#FFFF"));
         lines.add(Text.literal("§f" + cfg.fakeNickname));
         lines.add(Text.literal("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank));
         lines.add(Text.literal("§7Монет: §6" + cfg.fakeCoins));
         lines.add(Text.literal("§7Токенов: §b" + cfg.fakeTokens));
         lines.add(Text.literal("§7Черепков: §d" + cfg.fakeSkulls));
-        lines.add(Text.literal("&#FFFFFF&#FF1A1A╠&#FFFFE6 §fУбийств: §a" + cfg.fakeKills));
+        lines.add(Text.literal("§4╠ §fУбийств: §a" + cfg.fakeKills));
         lines.add(Text.literal("§7Смертей: §c" + cfg.fakeDeaths));
         lines.add(Text.literal("§7Наиграно: §e" + cfg.fakePlaytime));
         return lines;
