@@ -136,12 +136,11 @@ public class ScoreboardChangerClient implements ClientModInitializer {
 
     private List<Text> buildFakeLines(ModConfig cfg) {
         List<Text> lines = new ArrayList<>();
-        lines.add(parseColoredText("§x§F§C§1§A§1§A╔§x§F§5§1§7§1§7═"));
-        lines.add(parseColoredText("§x§F§C§1§A§1§A╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
-        lines.add(parseColoredText("§7Ранг: " + cfg.fakeRankColor + " " + cfg.fakeRank));
-        lines.add(parseColoredText("§7Монет: §6" + cfg.fakeCoins));
-        lines.add(parseColoredText("§7Токенов: §b" + cfg.fakeTokens));
-        lines.add(parseColoredText("§7Черепков: §d" + cfg.fakeSkulls));
+        lines.add(parseColoredText("&#FC1A1A╔&#F21717═&#E81515═&#DE1212═&#D41010═&#CA0D0D═&#BF0A0A═&#B50808═&#AB0505═&#A10303═&#970000═"));
+        lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700" + cfg.fakeNickname));
+        lines.add(parseColoredText("&#fc1a1a╠ &#00fcfc⭐&fРанг: " + cfg.fakeRankColor + " " + cfg.fakeRank));
+        lines.add(parseColoredText("&#fc1a1a╠ &#fcfc1a$ &fМонет: &#fcfc1a" + cfg.fakeCoins));
+        lines.add(parseColoredText("&#fc1a1a╠ &#00fc00⛁ &fТокенов: &#00fc00777" + cfg.fakeTokens));
         lines.add(parseColoredText("§x§F§C§1§A§1§A╠ §fУбийств: §a" + cfg.fakeKills));
         lines.add(parseColoredText("§7Смертей: §c" + cfg.fakeDeaths));
         lines.add(parseColoredText("§7Наиграно: §e" + cfg.fakePlaytime));
