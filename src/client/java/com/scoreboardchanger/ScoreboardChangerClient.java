@@ -88,9 +88,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         int startY = 10 + cfg.offsetY;
 
         // Центрированный текст без тени (ручной расчёт)
-        Text debugText = parseColoredText("&#fc8a1a&l⚡ &#fc1a1a&lАнархия-506");
-        int debugX = (panelLeft + panelRight) / 2 - tr.getWidth(debugText) / 2;
-        context.drawText(tr, debugText, debugX, startY, 0xFFFF55, false);
 
         for (int i = 0; i < lines.size(); i++) {
             int lineY = startY + lineHeight + i * lineHeight;
@@ -136,6 +133,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
 
     private List<Text> buildFakeLines(ModConfig cfg) {
         List<Text> lines = new ArrayList<>();
+        lines.add(parseColoredText("&#fc8a1a&l⚡ &#fc1a1a&lАнархия-105"));
         lines.add(parseColoredText("&#FC1A1A╔&#F21717═&#E81515═&#DE1212═&#D41010═&#CA0D0D═&#BF0A0A═&#B50808═&#AB0505═&#A10303═&#970000═"));
         lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700" + cfg.fakeNickname));
         lines.add(parseColoredText("&#fc1a1a╠ &#00fcfc⭐ §fРанг:" + cfg.fakeRankColor + " " + cfg.fakeRank));
