@@ -87,8 +87,6 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         int panelLeft = panelRight - maxWidth;
         int startY = 10 + cfg.offsetY;
 
-        // Центрированный текст без тени (ручной расчёт)
-
         for (int i = 0; i < lines.size(); i++) {
             int lineY = startY + lineHeight + i * lineHeight;
             context.drawText(tr, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF, false);
@@ -172,13 +170,14 @@ public class ScoreboardChangerClient implements ClientModInitializer {
     }
 
     /**
-     * Преобразует строку с hex-цветами (&#RRGGBB или #RRGGBB) и стандартными кодами (§)
+     * Преобразует строку с hex-цветами (&#RRGGBB или #RRGGBB) и кодами форматирования (&l, §l, &o и т.д.)
      * в объект Text с правильным форматированием.
      */
     private Text parseColoredText(String raw) {
         if (raw == null || raw.isEmpty()) return Text.literal("");
 
-        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(&?#[0-9a-fA-F]{6})|(§.)");
+        // Ищем: &#RRGGBB, #RRGGBB, или &x, или §x (где x - буква/цифра кода форматирования)
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(&?#[0-9a-fA-F]{6})|([&§][0-9a-z])");
         java.util.regex.Matcher matcher = pattern.matcher(raw);
         MutableText result = Text.literal("");
         int lastEnd = 0;
@@ -191,6 +190,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             }
             String code = matcher.group();
             if (code.startsWith("&#") || code.startsWith("#")) {
+                // Hex-цвет
                 String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
                 try {
                     Optional<TextColor> optionalColor = TextColor.parse("#" + hex).result();
@@ -198,7 +198,8 @@ public class ScoreboardChangerClient implements ClientModInitializer {
                         currentStyle = currentStyle.withColor(optionalColor.get());
                     }
                 } catch (Exception ignored) {}
-            } else if (code.startsWith("§")) {
+            } else {
+                // Код форматирования: &l, §l, &o, §o, &n, &m, &r и т.д.
                 char c = code.charAt(1);
                 currentStyle = applyFormatting(currentStyle, c);
             }
