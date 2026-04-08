@@ -10,7 +10,7 @@ import net.minecraft.text.Text;
 
 public class ScoreboardChangerScreen extends Screen {
 
-    private static final String[] RANK_COLORS     = {"§f","§a","§b","§e","§6","§x§f§f§0§0§2§e","§4","§d","§5","§9"};
+    private static final String[] RANK_COLORS     = {"§f","§a","§b","§e","§6","&x&f&f&0&0&2&e","§4","§d","§5","§9"};
     private static final String[] RANK_COLOR_NAMES = {"Белый","Зелёный","Голубой","Жёлтый","Золотой","Красный","Тёмно-красный","Розовый","Фиолетовый","Синий"};
 
     private TextFieldWidget nicknameField, rankField, coinsField, tokensField,
