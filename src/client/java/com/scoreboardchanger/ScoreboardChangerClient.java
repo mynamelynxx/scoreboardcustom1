@@ -136,7 +136,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700" + cfg.fakeNickname));
         lines.add(parseColoredText("&#fc1a1a╠ &#00fcfc⭐ §fРанг:" + cfg.fakeRankColor + " " + cfg.fakeRank));
         lines.add(parseColoredText("&#fc1a1a╠ &#fcfc1a$ §fМонет: &#fcfc1a" + cfg.fakeCoins));
-        lines.add(parseColoredText("&#fc1a1a╠ &#00fc00⛁ §fТокенов: &#00fc00777" + cfg.fakeTokens));
+        lines.add(parseColoredText("&#fc1a1a╠ &#00fc00⛁ §fТокенов: &#00fc00" + cfg.fakeTokens));
         lines.add(parseColoredText("&#fc1a1a╠"));
         lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700Статистика"));
         lines.add(parseColoredText("&#fc1a1a╠ §fУбийств: &#fcfc32" + cfg.fakeKills));
