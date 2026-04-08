@@ -15,7 +15,9 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.ScoreboardDisplaySlot;
 import net.minecraft.scoreboard.ScoreboardEntry;
 import net.minecraft.scoreboard.ScoreboardObjective;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
+import net.minecraft.text.TextColor;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -83,15 +85,11 @@ public class ScoreboardChangerClient implements ClientModInitializer {
         int panelLeft = panelRight - maxWidth;
         int startY = 10 + cfg.offsetY;
 
-        // Фон полностью убран (прозрачность 100%)
-        // context.fill(panelLeft, startY - 1, panelRight, startY + lineHeight, 0xFF1B1B1B);
-        context.drawCenteredTextWithShadow(tr, Text.literal("§e[DEBUG]"), (panelLeft + panelRight) / 2, startY, 0xFFFF55);
+        // Без фона
+        context.drawCenteredTextWithShadow(tr, parseColoredText("§e[DEBUG]"), (panelLeft + panelRight) / 2, startY, 0xFFFF55);
 
         for (int i = 0; i < lines.size(); i++) {
             int lineY = startY + lineHeight + i * lineHeight;
-            // Без фона
-            // context.fill(panelLeft, lineY - 1, panelRight, lineY + lineHeight - 1,
-            //         i % 2 == 0 ? 0xAA1B1B1B : 0xAA222222);
             context.drawTextWithShadow(tr, lines.get(i), panelLeft + 3, lineY, 0xFFFFFF);
         }
     }
@@ -128,39 +126,110 @@ public class ScoreboardChangerClient implements ClientModInitializer {
             if (replacement == null) continue;
 
             int lineY = bottomY - (i + 1) * lineHeight;
-            // Полностью прозрачный фон — строки fill убраны
-            // context.fill(boardLeft - 2, lineY - 1, boardRight + 2, lineY + lineHeight - 1, 0xFF000000);
-            // context.fill(boardLeft - 1, lineY - 1, boardRight + 1, lineY + lineHeight - 1,
-            //         i % 2 == 0 ? 0xAA000000 : 0x88000000);
+            // Без фона — строки fill полностью убраны
             context.drawTextWithShadow(tr, replacement, boardLeft, lineY, 0xFFFFFF);
         }
     }
 
     private List<Text> buildFakeLines(ModConfig cfg) {
         List<Text> lines = new ArrayList<>();
-        lines.add(Text.literal("§x§F§C§1§A§1§A╔§x§F§5§1§7§1§7═"));
-        lines.add(Text.literal("§x§F§C§1§A§1§A╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
-        lines.add(Text.literal("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank));
-        lines.add(Text.literal("§7Монет: §6" + cfg.fakeCoins));
-        lines.add(Text.literal("§7Токенов: §b" + cfg.fakeTokens));
-        lines.add(Text.literal("§7Черепков: §d" + cfg.fakeSkulls));
-        lines.add(Text.literal("§x§F§C§1§A§1§A╠ §fУбийств: §a" + cfg.fakeKills));
-        lines.add(Text.literal("§7Смертей: §c" + cfg.fakeDeaths));
-        lines.add(Text.literal("§7Наиграно: §e" + cfg.fakePlaytime));
+        lines.add(parseColoredText("§x§F§C§1§A§1§A╔§x§F§5§1§7§1§7═"));
+        lines.add(parseColoredText("§x§F§C§1§A§1§A╠╣ §x§F§C§9§7§0§0" + cfg.fakeNickname));
+        lines.add(parseColoredText("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank));
+        lines.add(parseColoredText("§7Монет: §6" + cfg.fakeCoins));
+        lines.add(parseColoredText("§7Токенов: §b" + cfg.fakeTokens));
+        lines.add(parseColoredText("§7Черепков: §d" + cfg.fakeSkulls));
+        lines.add(parseColoredText("§x§F§C§1§A§1§A╠ §fУбийств: §a" + cfg.fakeKills));
+        lines.add(parseColoredText("§7Смертей: §c" + cfg.fakeDeaths));
+        lines.add(parseColoredText("§7Наиграно: §e" + cfg.fakePlaytime));
         return lines;
     }
 
     private Text getReplacement(String raw, ModConfig cfg) {
         String s = raw.replaceAll("§.", "").trim();
-        if (s.contains("Ранг:"))     return Text.literal("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank);
-        if (s.contains("Монет:"))    return Text.literal("§7Монет: §6" + cfg.fakeCoins);
-        if (s.contains("Токенов:"))  return Text.literal("§7Токенов: §b" + cfg.fakeTokens);
-        if (s.contains("Черепков:")) return Text.literal("§7Черепков: §d" + cfg.fakeSkulls);
-        if (s.contains("Убийств:"))  return Text.literal("§7Убийств: §a" + cfg.fakeKills);
-        if (s.contains("Смертей:"))  return Text.literal("§7Смертей: §c" + cfg.fakeDeaths);
-        if (s.contains("Наиграно:")) return Text.literal("§7Наиграно: §e" + cfg.fakePlaytime);
+        if (s.contains("Ранг:"))
+            return parseColoredText("§7Ранг: " + cfg.fakeRankColor + cfg.fakeRank);
+        if (s.contains("Монет:"))
+            return parseColoredText("§7Монет: §6" + cfg.fakeCoins);
+        if (s.contains("Токенов:"))
+            return parseColoredText("§7Токенов: §b" + cfg.fakeTokens);
+        if (s.contains("Черепков:"))
+            return parseColoredText("§7Черепков: §d" + cfg.fakeSkulls);
+        if (s.contains("Убийств:"))
+            return parseColoredText("§7Убийств: §a" + cfg.fakeKills);
+        if (s.contains("Смертей:"))
+            return parseColoredText("§7Смертей: §c" + cfg.fakeDeaths);
+        if (s.contains("Наиграно:"))
+            return parseColoredText("§7Наиграно: §e" + cfg.fakePlaytime);
         if (!s.isEmpty() && !s.contains(":") && !s.contains(" ") && !cfg.fakeNickname.isEmpty())
-            return Text.literal("§f" + cfg.fakeNickname);
+            return parseColoredText("§f" + cfg.fakeNickname);
         return null;
+    }
+
+    /**
+     * Преобразует строку с hex-цветами (&#RRGGBB или #RRGGBB) и стандартными кодами (§)
+     * в объект Text с правильным форматированием.
+     */
+    private Text parseColoredText(String raw) {
+        if (raw == null || raw.isEmpty()) return Text.literal("");
+
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("(&?#[0-9a-fA-F]{6})|(§.)");
+        java.util.regex.Matcher matcher = pattern.matcher(raw);
+        Text result = Text.literal("");
+        int lastEnd = 0;
+        Style currentStyle = Style.EMPTY;
+
+        while (matcher.find()) {
+            if (matcher.start() > lastEnd) {
+                String textPart = raw.substring(lastEnd, matcher.start());
+                result = result.append(Text.literal(textPart).setStyle(currentStyle));
+            }
+            String code = matcher.group();
+            if (code.startsWith("&#") || code.startsWith("#")) {
+                String hex = code.startsWith("&#") ? code.substring(2) : code.substring(1);
+                try {
+                    TextColor color = TextColor.parse(hex);
+                    currentStyle = currentStyle.withColor(color);
+                } catch (Exception ignored) {}
+            } else if (code.startsWith("§")) {
+                char c = code.charAt(1);
+                currentStyle = applyFormatting(currentStyle, c);
+            }
+            lastEnd = matcher.end();
+        }
+        if (lastEnd < raw.length()) {
+            result = result.append(Text.literal(raw.substring(lastEnd)).setStyle(currentStyle));
+        }
+        return result;
+    }
+
+    /**
+     * Применяет стандартный код форматирования Minecraft (цвет, жирный, курсив и т.д.)
+     */
+    private Style applyFormatting(Style style, char code) {
+        switch (code) {
+            case '0': return style.withColor(TextColor.fromRgb(0x000000));
+            case '1': return style.withColor(TextColor.fromRgb(0x0000AA));
+            case '2': return style.withColor(TextColor.fromRgb(0x00AA00));
+            case '3': return style.withColor(TextColor.fromRgb(0x00AAAA));
+            case '4': return style.withColor(TextColor.fromRgb(0xAA0000));
+            case '5': return style.withColor(TextColor.fromRgb(0xAA00AA));
+            case '6': return style.withColor(TextColor.fromRgb(0xFFAA00));
+            case '7': return style.withColor(TextColor.fromRgb(0xAAAAAA));
+            case '8': return style.withColor(TextColor.fromRgb(0x555555));
+            case '9': return style.withColor(TextColor.fromRgb(0x5555FF));
+            case 'a': return style.withColor(TextColor.fromRgb(0x55FF55));
+            case 'b': return style.withColor(TextColor.fromRgb(0x55FFFF));
+            case 'c': return style.withColor(TextColor.fromRgb(0xFF5555));
+            case 'd': return style.withColor(TextColor.fromRgb(0xFF55FF));
+            case 'e': return style.withColor(TextColor.fromRgb(0xFFFF55));
+            case 'f': return style.withColor(TextColor.fromRgb(0xFFFFFF));
+            case 'l': return style.withBold(true);
+            case 'o': return style.withItalic(true);
+            case 'n': return style.withUnderline(true);
+            case 'm': return style.withStrikethrough(true);
+            case 'r': return Style.EMPTY;
+            default: return style;
+        }
     }
 }
