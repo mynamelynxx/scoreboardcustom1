@@ -133,7 +133,7 @@ public class ScoreboardChangerScreen extends Screen {
         context.drawTextWithShadow(textRenderer, "Цвет ранга:", col1X, y0 + gap * 2 + 5, 0xAAAAAA);
         context.drawTextWithShadow(textRenderer, "Монеты:", col1X, y0 + gap * 3 + 5, 0xAAAAAA);
         context.drawTextWithShadow(textRenderer, "Токены:", col1X, y0 + gap * 4 + 5, 0xAAAAAA);
-        context.drawTextWithShadow(textRenderer, "Черепки:", col1X, y0 + gap * 5 + 5, 0xAAAAAA);
+        context.drawTextWithShadow(textRenderer, "Анархия:", col1X, y0 + gap * 5 + 5, 0xAAAAAA);
 
         context.drawTextWithShadow(textRenderer, "Убийства:", col2X, y0 + 5, 0xAAAAAA);
         context.drawTextWithShadow(textRenderer, "Смерти:", col2X, y0 + gap + 5, 0xAAAAAA);
