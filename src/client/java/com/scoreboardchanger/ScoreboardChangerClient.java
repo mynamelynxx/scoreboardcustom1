@@ -77,7 +77,7 @@ public class ScoreboardChangerClient implements ClientModInitializer {
 
     private List<Text> buildFakeLines(ModConfig cfg) {
         List<Text> lines = new ArrayList<>();
-        lines.add(parseColoredText("&#fc8a1a&l  ⚡ &#fc1a1a&lАнархия-105"));
+        lines.add(parseColoredText("&#fc8a1a&l  ⚡ &#fc1a1a&lАнархия-" + cfg.fakeSkulls));
         lines.add(parseColoredText("&#FC1A1A╔&#F21717═&#E81515═&#DE1212═&#D41010═&#CA0D0D═&#BF0A0A═&#B50808═&#AB0505═&#A10303═&#970000═"));
         lines.add(parseColoredText("&#fc1a1a╠╣ &#fc9700" + cfg.fakeNickname));
         lines.add(parseColoredText("&#fc1a1a╠ &#00fcfc⭐ §fРанг:" + cfg.fakeRankColor + " " + cfg.fakeRank));
